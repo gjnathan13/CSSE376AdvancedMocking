@@ -76,8 +76,8 @@ namespace CommandClientVisualStudioTest
             byte[] ip = { 49, 50, 55, 46, 48, 46, 48, 46, 49 };
             byte[] metaDataLength = { 2, 0, 0, 0 };
             byte[] metaData = { 10, 0 };
-            int testLength = commandBytes.Length + ipLength.Length + ip.Length
-                   + metaDataLength.Length + metaData.Length;
+            byte[] combinedTestArray = { 0, 0, 0, 0, 9, 0, 0, 0, 49, 50, 55
+                                           , 46, 48, 46, 48, 46, 49, 2, 0, 0, 0, 10, 0};
 
             CMDClient client = new CMDClient(null, "Bogus network name");
             client.GetType().GetField("networkStream", BindingFlags.Instance | BindingFlags.NonPublic)
@@ -85,9 +85,9 @@ namespace CommandClientVisualStudioTest
 
             bool check = client.SendCommandToServerUnthreaded(command);
             Assert.IsTrue(check);
-            Assert.AreEqual(memStream.Length, testLength);
-
-            
+            byte[] memStreamRead = memStream.ToArray();
+            Assert.AreEqual(memStreamRead.Length, combinedTestArray.Length);
+            CollectionAssert.AreEqual(memStreamRead, combinedTestArray);
         }
 
         [TestMethod]
@@ -174,8 +174,10 @@ namespace CommandClientVisualStudioTest
             try
             {
                 client.SendCommandToServerUnthreaded(command);
+                Assert.Fail("Exception not thrown");
             }
-            catch { };
+            catch(System.InvalidOperationException e) 
+            { };
             mocks.VerifyAll();
 
         }
